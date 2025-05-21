@@ -58,11 +58,11 @@ ListaNos *CriaNoListaNos(int simb){
 	return No;
 }
 
-ListR *CriaNoListaPalavra(char *palavra){
+ListR *CriaNoListaPalavra(char *palavra, int simbolo){
 	ListR *No = (ListR*)malloc(sizeof(ListR));
-	No -> simbolo = 0;
+	No -> simbolo = simbolo;
 	strcpy(No -> palavra, palavra);
-	No -> freq = 0;
+	No -> freq = 1;
 	strcpy(No -> cod, ' ');
 	No -> prox = NULL;
 	return No;
@@ -79,11 +79,12 @@ void ProcessaPalavra(ListR *LP, char *palavra){
 
 	ListR *aux = NULL;
 	ListR *andar = LP;
+	int simbolo = 1;
 
 	BuscaPalavra(LP, palavra, &aux);
 	
 	if(aux == NULL){
-		ListR *No = CriaNoListaPalavra(palavra);
+		ListR *No = CriaNoListaPalavra(palavra, simbolo++);
 
 		while(andar -> prox != NULL)
 			andar = andar -> prox;
@@ -106,4 +107,20 @@ void preencherListaPalavras(ListR *LP, char *frase, int *freq){
 		
 		j = i;
 	}
+}
+
+void exibirListR(ListR *lista) {
+    ListR *atual = lista;
+    char palavra[50];
+
+    if (atual != NULL) {
+        printf("Lista de Registros: \n");
+        printf("%-15s %10s %10s %10s\n", "Palavra", "Simbolo", "Freq", "Codigo");
+
+        while (atual != NULL) {
+            sprintf(palavra, "\"%s\"", atual->palavra);
+            printf("%-15s %10d %10d %10s\n", palavra, atual->simbolo, atual->freq, atual->cod);
+            atual = atual->prox;
+        }
+    }
 }
