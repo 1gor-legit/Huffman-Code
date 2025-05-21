@@ -11,7 +11,8 @@ int main(){
 	char frase[] = "ele correu correu sem olhar para tras correu como se a vida dependesse disso correu mesmo quando as forcas faltavam correu apesar do medo correu enquanto a chuva caia correu entre gritos correu entre sombras correu por cada lembrança que o perseguia correu por tudo que havia perdido correu por tudo que ainda sonhava alcançar correu mesmo quando tudo dizia para parar correu com dor correu com esperança correu com raiva correu com amor correu até que as pernas cederam ate que o coracao quase parou e mesmo assim ainda correu";
 
 	ListaNos *L = NULL;
-	contarFreq(&L, frase);
+	int simbolo = 0;
+	ListR *LP = NULL;
 
 	//------------COMO GRAVAR BYTE A BYTE-------------------
 	
