@@ -18,7 +18,7 @@ struct listaRegistros{
     int simbolo;
     char palavra[50];
     int freq;
-    baite cod[50];
+    char cod[50];
     struct listaRegistros *prox;
 };
 typedef struct listaRegistros ListR;
@@ -26,7 +26,7 @@ typedef struct listaRegistros ListR;
 struct gravar{
     int simbolo;
     char palavra[50];
-    baite cod[50];
+    char cod[50];
 };
 typedef struct gravar Gravar;
 //-----------------------------------------------------------------------------------
@@ -48,6 +48,3 @@ union baite{
 };
 //----------------------------------------------
 
-void contarFreq(ListaNos **L, char *frase){
-        
-}
