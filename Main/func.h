@@ -48,3 +48,62 @@ union baite{
 };
 //----------------------------------------------
 
+//-----------------CriaNo's---------------------
+
+ListaNos *CriaNoListaNos(int simb){
+	ListaNos *No = (ListaNos*)malloc(sizeof(ListaNos));
+	No -> floresta -> simb = simb;
+	No -> floresta -> freq = 0;
+	No -> floresta -> esq = No -> floresta -> dir = No -> prox = NULL;
+	return No;
+}
+
+ListR *CriaNoListaPalavra(char *palavra){
+	ListR *No = (ListR*)malloc(sizeof(ListR));
+	No -> simbolo = 0;
+	strcpy(No -> palavra, palavra);
+	No -> freq = 0;
+	strcpy(No -> cod, ' ');
+	No -> prox = NULL;
+	return No;
+}
+//----------------------------------------------
+
+void BuscaPalavra(ListR *LP, char *palavra, ListR **aux){
+	*aux = LP;
+	while(*aux != NULL && stricmp((*aux) -> palavra, palavra) != 0)
+		*aux = (*aux) -> prox;
+}
+
+void ProcessaPalavra(ListR *LP, char *palavra){
+
+	ListR *aux = NULL;
+	ListR *andar = LP;
+
+	BuscaPalavra(LP, palavra, &aux);
+	
+	if(aux == NULL){
+		ListR *No = CriaNoListaPalavra(palavra);
+
+		while(andar -> prox != NULL)
+			andar = andar -> prox;
+
+		andar -> prox = No;
+	}
+	else
+		aux -> freq++;
+}
+
+void preencherListaPalavras(ListR *LP, char *frase, int *freq){
+	char palavra[20];
+	for(int j = 0; j < strlen(frase); j++){
+		
+		for(int i = j; frase[i] != ' '; i++)
+			palavra[i] = frase[j];
+		palavra[i] = '\0';
+
+		ProcessaPalavra(LP, palavra);
+		
+		j = i;
+	}
+}
