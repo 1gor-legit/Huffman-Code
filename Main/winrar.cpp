@@ -8,11 +8,20 @@
 
 int main(){
 
-	char frase[] = "ele correu correu sem olhar para tras correu como se a vida dependesse disso correu mesmo quando as forcas faltavam correu apesar do medo correu enquanto a chuva caia correu entre gritos correu entre sombras correu por cada lembrança que o perseguia correu por tudo que havia perdido correu por tudo que ainda sonhava alcançar correu mesmo quando tudo dizia para parar correu com dor correu com esperança correu com raiva correu com amor correu até que as pernas cederam ate que o coracao quase parou e mesmo assim ainda correu";
+	char frase[] = "ele correu correu sem olhar para tras correu como se a vida dependesse disso correu mesmo quando as forcas faltavam correu apesar do medo correu enquanto a chuva caia correu entre gritos correu entre sombras correu por cada lembranca que o perseguia correu por tudo que havia perdido correu por tudo que ainda sonhava alcancar correu mesmo quando tudo dizia para parar correu com dor correu com esperança correu com raiva correu com amor correu ate que as pernas cederam ate que o coracao quase parou e mesmo assim ainda correu";
 
 	ListaNos *L = NULL;
-	int simbolo = 0;
-	ListR *LP = NULL;
+	ListaR *LP = NULL;
+
+	//conta a frequencia das palavras e monta uma lista
+	preencherListaPalavras(&LP, frase);
+	exibirListaR(LP);
+	printf("\n\n");
+	//monta a lista de simbolo e frequencia de cada palavra
+	montaListaFreqSimb(&L, LP);
+	exibeListaFreqSimb(L);
+
+	getchar();
 
 	//------------COMO GRAVAR BYTE A BYTE-------------------
 	
