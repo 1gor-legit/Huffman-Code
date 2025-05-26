@@ -1,4 +1,11 @@
 //-------------------STRUCT'S-------------------
+//------------Pilha -----------------------------------
+struct pilha{
+    struct tree *arv;
+    int profundidade;
+    struct pilha *prox;
+};
+typedef struct pilha Pilha;
 //------------Montar a lista encadeada ordenada (Item A)----------------
 struct tree{
 	int simb, freq;
@@ -24,7 +31,7 @@ struct listaRegistros{
 typedef struct listaRegistros ListaR;
 
 struct gravar{
-    int simbolo;
+    int simbolo, frequencia;
     char palavra[50];
     char cod[50];
 };
@@ -47,6 +54,40 @@ union baite{
 	unsigned char num;
 };
 //----------------------------------------------
+
+//------------------TAD Pilha---------------------
+void init(Pilha **P){
+    *P = NULL;
+}
+
+int isEmpty(Pilha *P){
+    return P == NULL;
+}
+
+void push(Pilha **P, Tree *raiz, int prof){
+    Pilha *no = (Pilha*)malloc(sizeof(Pilha));
+    no -> arv = raiz;
+    no -> profundidade = prof;
+    no -> prox = NULL;
+
+    if(*P == NULL)
+        *P = no;
+    else{
+        no ->prox = *P;
+        *P = no;
+    }
+}
+
+void pop(Pilha **P, Tree **raiz, int *prof){
+    Pilha *aux;
+    if(!isEmpty(*P)){
+        aux = *P;
+        *raiz = aux ->arv;
+        *prof = aux ->profundidade;
+        *P = (*P) ->prox;
+        free(aux);
+    }
+}
 
 //-----------------CriaNo's---------------------
 
@@ -141,41 +182,34 @@ void exibirListaR(ListaR *LP) {
 }
 
 void montaListaFreqSimb(ListaNos **L, ListaR *LP){
-	ListaR *auxLP = LP;
-	while(auxLP != NULL){
+    ListaR *auxLP = LP;
 
-		ListaNos *No = CriaNoListaNos(auxLP -> simbolo, auxLP -> freq);
+    while(auxLP != NULL){
+        ListaNos *No = CriaNoListaNos(auxLP -> simbolo, auxLP -> freq);
+        ListaNos *atual = *L;
+        ListaNos *anterior = NULL;
 
-		if(*L == NULL || (*L) -> floresta -> freq > No -> floresta -> freq){
-			No -> prox = *L;
-			*L = No;
-		}
+        while(atual != NULL && atual -> floresta -> freq < No -> floresta -> freq){
+            anterior = atual;
+            atual = atual -> prox;
+        }
+
+        while(atual != NULL && atual -> floresta -> freq == No -> floresta -> freq){
+            anterior = atual;
+            atual = atual -> prox;
+        }
+
+        if(anterior == NULL){
+            No -> prox = *L;
+            *L = No;
+        }
 		else{
-			ListaNos *auxL = *L;
-			ListaNos *antL = NULL;
-			while(auxL -> prox != NULL && auxL -> floresta -> freq < No -> floresta -> freq){
-				antL = auxL;
-				auxL = auxL -> prox;
-			}
+            anterior -> prox = No;
+            No -> prox = atual;
+        }
 
-			if(auxL -> floresta -> freq > No -> floresta -> freq){
-				antL -> prox = No;
-				No -> prox = auxL;
-			}
-			else if(auxL -> floresta -> freq == No -> floresta -> freq){
-				while(auxL != NULL && auxL -> floresta -> freq == No -> floresta -> freq){
-					antL = auxL;
-					auxL = auxL -> prox;
-				}
-				antL -> prox = No;
-				No -> prox = auxL;
-			}
-			else
-				auxL -> prox = No;
-		}
-
-		auxLP = auxLP -> prox;
-	}
+        auxLP = auxLP -> prox;
+    }
 }
 
 void exibeListaFreqSimb(ListaNos *L){
@@ -190,4 +224,132 @@ void exibeListaFreqSimb(ListaNos *L){
 			atual = atual->prox;
 		}
 	}
+}
+
+void montaHuffman(ListaNos **L){
+	while(*L != NULL && (*L) -> prox != NULL){
+		
+		ListaNos *atual = *L;
+		ListaNos *post = atual -> prox;
+		*L = post -> prox;
+
+		ListaNos *No = CriaNoListaNos(0, atual -> floresta -> freq + post -> floresta -> freq);
+
+		No -> floresta -> esq = atual -> floresta;
+		No -> floresta -> dir = post -> floresta;
+		
+		free(atual);
+		free(post);
+
+		atual = *L;
+		ListaNos *ant = NULL;
+		while(atual != NULL && atual -> floresta -> freq <= No -> floresta -> freq){
+			ant = atual;
+			atual = atual -> prox;
+		}
+
+		if (ant == NULL) {
+			No->prox = *L;
+			*L = No;
+		} 
+		else{
+			ant->prox = No;
+			No->prox = atual;
+		}
+	}
+}
+
+char *buscaPalavra(ListaR *LP, int simb){
+
+    while(LP != NULL && LP -> simbolo != simb)
+		LP = LP -> prox;
+
+    if(LP != NULL && LP -> simbolo == simb)
+        return LP -> palavra;
+
+    return "0";
+}
+
+void exibeHuffman(Tree *raiz, ListaR *lista, int *n) {
+    if(raiz != NULL){
+
+        if((*n) == -1)
+            printf("Arvore de Huffman: \n");
+        (*n)++;
+
+        exibeHuffman(raiz -> dir, lista, n);
+        for (int i = 0; i < 5 * (*n); i++)
+			printf(" ");
+
+        if(raiz -> simb == 0)
+            printf("(0,%d)\n", raiz -> freq);
+		else
+            printf("(\"%s\",%d)\n", buscaPalavra(lista, raiz -> simb), raiz -> freq);
+        
+        exibeHuffman(raiz -> esq, lista, n);
+        (*n)--;
+    }
+}
+
+void gravarArquivo(ListaR *LP){
+	FILE *ptr = fopen("registro.dat", "wb");
+
+	if(ptr != NULL){
+		ListaR *auxLP = LP;
+		Gravar registro;
+		while(auxLP != NULL){
+
+			registro.simbolo = auxLP -> simbolo;
+			registro.frequencia = auxLP -> freq;
+			strcpy(registro.palavra, auxLP -> palavra);
+			strcpy(registro.cod, auxLP -> cod);
+
+			printf("\n");
+			printf("simb:%d freq:%d palavra:%s cod:%s\n", registro.simbolo, registro.frequencia, registro.palavra, registro.cod);
+			fwrite(&registro, 1, sizeof(Gravar), ptr);
+			auxLP = auxLP -> prox;
+		}
+	}
+
+	fclose(ptr);
+}
+
+void codigoHuffman(Tree *raiz, ListaR **LP){
+    char codigo[50];
+    int pos = 0;
+    ListaR *inic = NULL;
+    Pilha *P;
+    init(&P);
+
+    push(&P, raiz, 0);
+    while(!isEmpty(P)){
+
+        pop(&P, &raiz, &pos);
+        while(raiz != NULL){
+
+            if(raiz -> dir == NULL && raiz -> esq == NULL){
+                inic = *LP;
+                codigo[pos] = '\0';
+
+                while(inic != NULL && inic -> simbolo != raiz -> simb)
+                    inic = inic -> prox;
+
+                if(inic != NULL)
+                    strcpy(inic -> cod, codigo);
+            } 
+
+            if(raiz -> dir != NULL)
+                push(&P, raiz-> dir, pos + 1);
+            
+            codigo[pos++] = '0';
+            raiz = raiz -> esq;
+        }   
+        if(!isEmpty(P)){
+            pop(&P, &raiz, &pos);
+        	codigo[pos - 1] = '1';
+            push(&P, raiz, pos);
+        } 
+    }
+
+    gravarArquivo(*LP);
 }
