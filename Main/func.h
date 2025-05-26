@@ -220,8 +220,8 @@ void exibeListaFreqSimb(ListaNos *L){
 		printf("%-15s %10s\n", "Simbolo", "Frequencia");
 
 		while (atual != NULL) {
-			printf("%-15d %10d\n", atual->floresta->simb, atual->floresta->freq);
-			atual = atual->prox;
+			printf("%-15d %10d\n", atual -> floresta -> simb, atual -> floresta -> freq);
+			atual = atual -> prox;
 		}
 	}
 }
@@ -297,6 +297,7 @@ void gravarArquivo(ListaR *LP){
 	if(ptr != NULL){
 		ListaR *auxLP = LP;
 		Gravar registro;
+		printf("\n\tLista de Registros: \n\n");
 		while(auxLP != NULL){
 
 			registro.simbolo = auxLP -> simbolo;
@@ -304,8 +305,7 @@ void gravarArquivo(ListaR *LP){
 			strcpy(registro.palavra, auxLP -> palavra);
 			strcpy(registro.cod, auxLP -> cod);
 
-			printf("\n");
-			printf("simb:%d freq:%d palavra:%s cod:%s\n", registro.simbolo, registro.frequencia, registro.palavra, registro.cod);
+			printf("Simbolo:%d Frequencia:%d Palavra:%s, Codigo:%s\n", registro.simbolo, registro.frequencia, registro.palavra, registro.cod);
 			fwrite(&registro, 1, sizeof(Gravar), ptr);
 			auxLP = auxLP -> prox;
 		}
@@ -353,3 +353,103 @@ void codigoHuffman(Tree *raiz, ListaR **LP){
 
     gravarArquivo(*LP);
 }
+
+void codificarFrase(ListaR **LP, char *frase){
+	int i, j = 0;
+	union baite ub;
+	ListaR palavra;
+	char cod[3000] = {0};
+	char aux[50] = {0};
+
+	// Processar cada palavra da frase
+	while(frase[j] != '\0'){
+        
+		int k = 0;
+        if(frase[j] == ' '){
+            strcpy(aux, " ");
+            j++;
+        }
+		else{
+            while (frase[j] != ' ' && frase[j] != '\0')
+                aux[k++] = frase[j++];
+            aux[k] = '\0';
+        }
+
+        // Procurar a palavra ou espaço na lista de registros
+        ListaR *atual = *LP;
+        while(atual != NULL && strcmp(atual -> palavra, aux) != 0)
+            atual = atual -> prox;
+        
+        if(atual != NULL)
+            strcat(cod, atual -> cod);
+    }
+
+	i = 1;
+    while(cod[i] != '\0')
+        i++;
+	
+    while(i % 8 != 0)
+        cod[i++] = '0';
+    cod[i] = '\0';
+
+	int tamanho = strlen(cod);
+	FILE *ptrArq = fopen("codificado.dat", "wb");
+	int rec[tamanho];
+	
+	//gravando os bits
+	for(i = 0; i < tamanho; ){
+		
+		ub.bi.b0 = cod[i++];
+		ub.bi.b1 = cod[i++];
+		ub.bi.b2 = cod[i++];
+		ub.bi.b3 = cod[i++];
+		ub.bi.b4 = cod[i++];
+		ub.bi.b5 = cod[i++];
+		ub.bi.b6 = cod[i++];
+		ub.bi.b7 = cod[i++];
+		
+		fwrite(&ub.num, sizeof(unsigned char), 1, ptrArq);
+	}
+	fclose(ptrArq);
+	
+	//lendo os bits
+	ptrArq = fopen("codificado.dat", "rb");
+	fread(&ub.num, sizeof(unsigned char), 1, ptrArq);
+	i = 0;
+	while(!feof(ptrArq)){
+		
+		rec[i++] = ub.bi.b0;
+		rec[i++] = ub.bi.b1;
+		rec[i++] = ub.bi.b2;
+		rec[i++] = ub.bi.b3;
+		rec[i++] = ub.bi.b4;
+		rec[i++] = ub.bi.b5;
+		rec[i++] = ub.bi.b6;
+		rec[i++] = ub.bi.b7;
+		
+		fread(&ub.num, sizeof(unsigned char), 1, ptrArq);
+	}
+	fclose(ptrArq);
+
+	/*for(i = 0; i < tamanho; i++)
+		printf("%d", rec[i]);*/
+}
+
+/*void ConverteBINemTXT(){
+	FILE *ptrBin = fopen("codificado.dat", "rb");
+	FILE *ptrTxt = fopen("codificado.txt", "w");
+	union baite ub;
+	int i = 0;
+
+	if(ptrBin != NULL && ptrTxt != NULL){
+		while(fread(&ub.num, sizeof(unsigned char), 1, ptrBin) == 1){
+			fprintf(ptrTxt, "%d%d%d%d%d%d%d%d", ub.bi.b0, ub.bi.b1, ub.bi.b2, ub.bi.b3, ub.bi.b4, ub.bi.b5, ub.bi.b6, ub.bi.b7);
+			i++;
+		}
+		fclose(ptrBin);
+		fclose(ptrTxt);
+		printf("Arquivo convertido com sucesso!\n");
+	}
+	else
+		printf("Erro ao abrir os arquivos.\n");
+}*/
