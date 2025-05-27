@@ -110,6 +110,14 @@ ListaR *CriaNoListaPalavra(char *palavra, int simbolo){
 	No -> prox = NULL;
 	return No;
 }
+
+Tree *CriaNoHuff(){
+	Tree *No = (Tree*)malloc(sizeof(Tree));
+	No -> simb = 0;
+	No -> freq = 0;
+	No -> esq = No -> dir = NULL;
+	return No;
+}
 //----------------------------------------------
 
 void BuscaPalavra(ListaR *LP, char *palavra, ListaR **aux){
@@ -453,3 +461,47 @@ void codificarFrase(ListaR **LP, char *frase){
 	else
 		printf("Erro ao abrir os arquivos.\n");
 }*/
+
+//-------------------------------------> PROGRAMA 2 <------------------------------------------------
+
+void decodificarFrase(Tree **raiz){
+	FILE *ptrReg = fopen("registro.dat", "rb");
+    FILE *ptrFrase = fopen("codificado.dat", "rb");
+
+	Tree *auxT = *raiz;
+	int j = 0;
+
+	char frase_decod[1000] = "";
+	char cod[20];
+	Gravar registro;
+	char *codigoArq = fgets(codigoArq, 1, ptrFrase);
+
+	for(int i = 0; codigoArq[i] != '\0'; i++){
+		if(codigoArq[i] == '0'){
+			auxT -> esq = CriaNoHuff();
+			auxT = auxT -> esq;
+		}
+		else{
+			auxT -> dir = CriaNoHuff();
+			auxT = auxT -> dir;
+		}
+
+		cod[j++] = codigoArq[i];
+
+		fseek(ptrReg, 0, 0);
+		fread(&registro, sizeof(Gravar), 1, ptrReg);
+		while(!feof(ptrReg) && strcmp(registro.cod, cod) != 0)
+			fread(&registro, sizeof(Gravar), 1, ptrReg);
+		
+		if(!feof(ptrReg)){
+			strcat(frase_decod, registro.palavra);
+			memset(cod, '\0', sizeof(cod));
+		}
+	}
+
+	cod[j] = '\0';
+	printf("\nFrase decodificada: %s\n", frase_decod);
+
+	fclose(ptrReg);
+	fclose(ptrFrase);
+}
