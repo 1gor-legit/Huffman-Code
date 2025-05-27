@@ -529,19 +529,19 @@ void decodificarFrase(Tree **raiz){
 			while((bit = fgetc(ptrFrase)) != EOF){
 				
 				if(bit == '0')
-                    atual = atual -> esq;
+		                    atual = atual -> esq;
                 
-                else if(bit == '1')
-                    atual = atual -> dir; 
-				
+		                else if(bit == '1')
+		                    atual = atual -> dir; 
+					
 				//Ve se é um nó
-		        if(atual -> esq == NULL && atual -> dir == NULL){
-		            printf("%c", atual -> simb);
-		            atual = *raiz;
-		        }
-		    }
+			        if(atual -> esq == NULL && atual -> dir == NULL){
+			            printf("%c", atual -> simb);
+			            atual = *raiz;
+			        }
+		    	}
 		    
-		    printf("\n");
+		    	printf("\n");
 			fclose(ptrFrase);
 		}
 		
