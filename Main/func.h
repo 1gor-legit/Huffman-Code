@@ -369,6 +369,8 @@ void codificarFrase(ListaR **LP, char *frase){
 	char cod[256] = {0};
 	char aux[50] = {0};
 
+	printf("\nFrase Codificada:\n%s", frase);
+
 	// Processar cada palavra da frase
 	while(frase[j] != '\0'){
         
@@ -494,17 +496,17 @@ void decodificarFrase(Tree **raiz){
 					auxT = auxT -> dir;
 				}
 			}
-			if(registro.cod[i + 1] == '\0')
-            	auxT -> simb = registro.simbolo;
+            auxT -> simb = registro.simbolo;
 		}
-
+		
 		FILE *ptrFrase = fopen("codificado.dat", "rb");
-
+		
 		fseek(ptrFrase, 0, 2);
 		int tamanho = ftell(ptrFrase) * 8;
 		int rec[tamanho + 1];
-
+		
 		fseek(ptrFrase, 0, 0);
+		fseek(ptrReg, 0, 0);
 		i = 0;
 		while(fread(&ub.num, sizeof(unsigned char), 1, ptrFrase)){
 			
@@ -517,30 +519,30 @@ void decodificarFrase(Tree **raiz){
 			rec[i++] = ub.bi.b6;
 			rec[i++] = ub.bi.b7;
 		}
-		rec[i] = '\0';
+		rec[i] = 3;
 		
 		auxT = *raiz;
-		printf("\nFrase Decodificada:\n");
-		for(i = 0; rec[i] != '\0'; i++){
+		printf("Frase Decodificada:\n");
+		for(i = 0; rec[i] != 3; i++){
 
 			if(rec[i] == 0){
 				auxT = auxT -> esq;
 				if(auxT -> simb != 0){
 					while(fread(&registro, sizeof(Gravar), 1, ptrReg)){
 						if(registro.simbolo == auxT -> simb){
-							printf("%s ", registro.palavra);
+							printf("%s", registro.palavra);
 							auxT = *raiz;
 						}
 					}
 					fseek(ptrReg, 0, 0);
 				}
 			}
-			else{
+			else if(rec[i] == 1){
 				auxT = auxT -> dir;
 				if(auxT -> simb != 0){
 					while(fread(&registro, sizeof(Gravar), 1, ptrReg)){
 						if(registro.simbolo == auxT -> simb){
-							printf("%s ", registro.palavra);
+							printf("%s", registro.palavra);
 							auxT = *raiz;
 						}
 					}
