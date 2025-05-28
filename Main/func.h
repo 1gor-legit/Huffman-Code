@@ -323,7 +323,7 @@ void gravarArquivo(ListaR *LP){
 }
 
 void codigoHuffman(Tree *raiz, ListaR **LP){
-    char codigo[50];
+    char codigo[256];
     int pos = 0;
     ListaR *inic = NULL;
     Pilha *P;
@@ -366,7 +366,7 @@ void codificarFrase(ListaR **LP, char *frase){
 	int i, j = 0;
 	union baite ub;
 	ListaR palavra;
-	char cod[500] = {0};
+	char cod[256] = {0};
 	char aux[50] = {0};
 
 	// Processar cada palavra da frase
@@ -383,7 +383,7 @@ void codificarFrase(ListaR **LP, char *frase){
             aux[k] = '\0';
         }
 
-        // Procurar a palavra ou espaÃ§o na lista de registros
+        // Procurar a palavra ou espaço na lista de registros
         ListaR *atual = *LP;
         while(atual != NULL && strcmp(atual -> palavra, aux) != 0)
             atual = atual -> prox;
@@ -403,7 +403,7 @@ void codificarFrase(ListaR **LP, char *frase){
 	int tamanho = strlen(cod);
 	FILE *ptrArq = fopen("codificado.dat", "wb");
 	int rec[tamanho];
-	
+
 	//gravando os bits
 	for(i = 0; i < tamanho; ){
 		
@@ -419,8 +419,9 @@ void codificarFrase(ListaR **LP, char *frase){
 		fwrite(&ub.num, sizeof(unsigned char), 1, ptrArq);
 	}
 	fclose(ptrArq);
-	
-	//lendo os bits
+
+	//-------------------> lendo os bits <-------------------------
+	/*
 	ptrArq = fopen("codificado.dat", "rb");
 	fread(&ub.num, sizeof(unsigned char), 1, ptrArq);
 	i = 0;
@@ -439,7 +440,7 @@ void codificarFrase(ListaR **LP, char *frase){
 	}
 	fclose(ptrArq);
 
-	/*for(i = 0; i < tamanho; i++)
+	for(i = 0; i < tamanho; i++)
 		printf("%d", rec[i]);*/
 }
 
@@ -468,83 +469,87 @@ void decodificarFrase(Tree **raiz){
 	FILE *ptrReg = fopen("registro.dat", "rb");
     
     union baite ub;
-    
+	int i;
 	Gravar registro;
+
 	if(ptrReg != NULL){
 		
 		*raiz = CriaNoHuff();
 		(*raiz) -> simb = 0;
 		Tree *auxT;
 		
-		fread(&registro, sizeof(Gravar), 1, ptrReg);
-		while(!feof(ptrReg)){
+		while(fread(&registro, sizeof(Gravar), 1, ptrReg)){
 			auxT = *raiz;
-			for(int i = 0; registro.cod[i] != '\0'; i++){
+
+			for(i = 0; registro.cod[i] != '\0'; i++){
+
 				if(registro.cod[i] == '0'){
-					if(registro.cod[i + 1] != '\0'){
-						if(auxT -> esq == NULL)
-							auxT -> esq = CriaNoHuff();
-						auxT = auxT -> esq;
-					}
-					else{
-						if(auxT -> esq == NULL){
-							auxT -> esq = CriaNoHuff();
-							auxT -> esq -> simb = registro.simbolo;
-						}
-						else
-							auxT -> esq -> simb = registro.simbolo;
-						
-						auxT = auxT -> esq;
-					}
+					if(auxT -> esq == NULL)
+						auxT -> esq = CriaNoHuff();
+					auxT = auxT -> esq;
 				}
-				else{
-					if(registro.cod[i + 1] != '\0'){
-						if(auxT -> dir == NULL)
-							auxT -> dir = CriaNoHuff();
-						auxT = auxT -> dir;
-					}
-					else{
-						if(auxT -> dir == NULL){
-							auxT -> dir = CriaNoHuff();
-							auxT -> dir -> simb = registro.simbolo;
-						}
-						else
-							auxT -> dir -> simb = registro.simbolo;
-						
-						auxT = auxT -> dir;
-					}
+				else if(registro.cod[i] == '1'){
+					if(auxT -> dir == NULL)
+						auxT -> dir = CriaNoHuff();
+					auxT = auxT -> dir;
 				}
 			}
-			
-			fread(&registro, sizeof(Gravar), 1, ptrReg);
+			if(registro.cod[i + 1] == '\0')
+            	auxT -> simb = registro.simbolo;
 		}
-		
+
 		FILE *ptrFrase = fopen("codificado.dat", "rb");
-		if(ptrFrase != NULL){
+
+		fseek(ptrFrase, 0, 2);
+		int tamanho = ftell(ptrFrase) * 8;
+		int rec[tamanho + 1];
+
+		fseek(ptrFrase, 0, 0);
+		i = 0;
+		while(fread(&ub.num, sizeof(unsigned char), 1, ptrFrase)){
 			
-			printf("Frase decodificada: ");
-			Tree *atual = *raiz;
-			int bit;
-			
-			while((bit = fgetc(ptrFrase)) != EOF){
-				
-				if(bit == '0')
-		                    atual = atual -> esq;
-                
-		                else if(bit == '1')
-		                    atual = atual -> dir; 
-					
-				//Ve se é um nó
-			        if(atual -> esq == NULL && atual -> dir == NULL){
-			            printf("%c", atual -> simb);
-			            atual = *raiz;
-			        }
-		    	}
-		    
-		    	printf("\n");
-			fclose(ptrFrase);
+			rec[i++] = ub.bi.b0;
+			rec[i++] = ub.bi.b1;
+			rec[i++] = ub.bi.b2;
+			rec[i++] = ub.bi.b3;
+			rec[i++] = ub.bi.b4;
+			rec[i++] = ub.bi.b5;
+			rec[i++] = ub.bi.b6;
+			rec[i++] = ub.bi.b7;
 		}
+		rec[i] = '\0';
 		
+		auxT = *raiz;
+		printf("\nFrase Decodificada:\n");
+		for(i = 0; rec[i] != '\0'; i++){
+
+			if(rec[i] == 0){
+				auxT = auxT -> esq;
+				if(auxT -> simb != 0){
+					while(fread(&registro, sizeof(Gravar), 1, ptrReg)){
+						if(registro.simbolo == auxT -> simb){
+							printf("%s ", registro.palavra);
+							auxT = *raiz;
+						}
+					}
+					fseek(ptrReg, 0, 0);
+				}
+			}
+			else{
+				auxT = auxT -> dir;
+				if(auxT -> simb != 0){
+					while(fread(&registro, sizeof(Gravar), 1, ptrReg)){
+						if(registro.simbolo == auxT -> simb){
+							printf("%s ", registro.palavra);
+							auxT = *raiz;
+						}
+					}
+					fseek(ptrReg, 0, 0);
+				}
+			}
+		}
+
+		fclose(ptrFrase);
 		fclose(ptrReg);
 	}
 }
